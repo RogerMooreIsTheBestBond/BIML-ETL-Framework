@@ -1,0 +1,37 @@
+<!--
+***********************************************************************
+File Name:  Deploy Staging Tables
+Version:    1.0
+Date:       29 Jan 2015
+By:         Tim G
+
+Description:  Creates the staging tables as defined by the metadata.
+
+Change History:
+Date            Who             Description
+29 Jan 2015     Tim G           Initial Version
+            
+***********************************************************************
+
+<#@ template tier="2" #>
+-->
+  <Biml xmlns="http://schemas.varigence.com/biml.xsd">
+    <Packages>
+      <Package Name="Deploy Staging Tables" ConstraintMode="Parallel">
+        <Annotations>
+          <Annotation AnnotationType="Tag" Tag="PackageRole">Deploy</Annotation>
+        </Annotations>
+        <Tasks>
+          <# foreach (var table in RootNode.Tables) { #>
+						<# if (table.SchemaName.Equals("stg")) { #>
+						<ExecuteSQL Name="Create <#=table.Schema.Name#> <#=table.Name#>" ConnectionName="EDW">
+							<DirectInput>
+								<#=table.GetDropAndCreateDdl()#>
+							</DirectInput>
+						</ExecuteSQL>
+						<# } #>
+          <# } #>
+        </Tasks>
+      </Package>
+    </Packages>
+  </Biml>

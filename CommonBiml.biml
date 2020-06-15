@@ -1,0 +1,106 @@
+
+
+<#@ property name="ScriptType" type="String" #>
+  
+<# if (ScriptType == "Start Package Audit") { #>
+  <ExecuteSQL Name="Start Package Audit" ConnectionName="EDW" ResultSet="SingleRow">
+    <DirectInput>
+      INSERT INTO audit.ETLPackageRun (
+      ETLRunID, PackageName, PackageGUID, PackageVersionGUID, ExecutionGUID,
+      Start, HasErrors, HasInferredMembers, Created)
+      OUTPUT INSERTED.ETLPackageRunID
+      SELECT ?, ?, ?, ?, ?, GETDATE(), 0, 0, GETDATE();
+    </DirectInput>
+    <Parameters>
+      <Parameter Name="0" DataType="Int64" VariableName="User.ETLRunID" />
+      <Parameter Name="1" DataType="String" VariableName="System.PackageName" />
+      <Parameter Name="2" DataType="Guid" VariableName="System.PackageID" />
+      <Parameter Name="3" DataType="Guid" VariableName="System.VersionGUID" />
+      <Parameter Name="4" DataType="Guid" VariableName="System.ExecutionInstanceGUID" />
+    </Parameters>
+    <Results>
+      <Result Name="ETLPackageRunID" VariableName="User.ETLPackageRunID" />
+    </Results>
+  </ExecuteSQL>
+<# } #>
+
+<# if (ScriptType == "Finish Package Audit") { #>
+  <ExecuteSQL Name="Finish Package Audit" ConnectionName="EDW" ResultSet="None">
+    <DirectInput>
+      UPDATE audit.ETLPackageRun SET
+      Finish = GETDATE(),
+      HasErrors = 0,
+      HasInferredMembers = 0,
+      Updated = GETDATE()
+      WHERE ETLPackageRunID = ?;
+    </DirectInput>
+    <Parameters>
+      <Parameter Name="0" DataType="Int64" VariableName="User.ETLPackageRunID" />
+    </Parameters>
+  </ExecuteSQL>
+<# } #>
+
+<# if (ScriptType == "Task Event Log") { #>
+  <Events>
+    <Event Name="Log Task Run" EventType="OnPostExecute" ConstraintMode="Linear">
+      <Tasks>
+        <ExecuteSQL Name="Log Task Run" ConnectionName="EDW">
+          <DirectInput>
+            INSERT INTO audit.ETLTaskRun (
+            ETLPackageRunID, ExecutionGUID, TaskGUID, TaskName, TaskDescription, Created)
+            SELECT ?, ?, ?, ?, ?, GETDATE()
+          </DirectInput>
+          <Parameters>
+            <Parameter Name="0" DataType="Int64" VariableName="User.ETLPackageRunID" />
+            <Parameter Name="1" DataType="Guid" VariableName="System.ExecutionInstanceGUID" />
+            <Parameter Name="2" DataType="Guid" VariableName="System.SourceID" />
+            <Parameter Name="3" DataType="String" VariableName="System.SourceName" />
+            <Parameter Name="4" DataType="String" VariableName="System.SourceDescription" />
+          </Parameters>
+        </ExecuteSQL>
+      </Tasks>
+    </Event>
+    <Event Name="Log Task Error" EventType="OnError" ConstraintMode="Linear">
+      <Tasks>
+        <ExecuteSQL Name="Log Task Error" ConnectionName="EDW">
+          <DirectInput>
+            INSERT INTO audit.ETLError (
+            ETLPackageRunID, ExecutionGUID, TaskGUID, TaskName, TaskDescription,
+            ErrorType, ErrorCode, ErrorDescription, Created)
+            SELECT ?, ?, ?, ?, ?, 'Error', ?, ?, GETDATE();
+          </DirectInput>
+          <Parameters>
+            <Parameter Name="0" DataType="Int64" VariableName="User.ETLPackageRunID" />
+            <Parameter Name="1" DataType="Guid" VariableName="System.ExecutionInstanceGUID" />
+            <Parameter Name="2" DataType="Guid" VariableName="System.SourceID" />
+            <Parameter Name="3" DataType="String" VariableName="System.SourceName" />
+            <Parameter Name="4" DataType="String" VariableName="System.SourceDescription" />
+            <Parameter Name="5" DataType="String" VariableName="System.ErrorCode" />
+            <Parameter Name="6" DataType="String" VariableName="System.ErrorDescription" />
+          </Parameters>
+        </ExecuteSQL>
+      </Tasks>
+    </Event>
+    <Event Name="Log Task Warning" EventType="OnWarning" ConstraintMode="Linear">
+      <Tasks>
+        <ExecuteSQL Name="Log Task Warning" ConnectionName="EDW">
+          <DirectInput>
+            INSERT INTO audit.ETLError (
+            ETLPackageRunID, ExecutionGUID, TaskGUID, TaskName, TaskDescription,
+            ErrorType, ErrorCode, ErrorDescription, Created)
+            SELECT ?, ?, ?, ?, ?, 'Warning', ?, ?, GETDATE();
+          </DirectInput>
+          <Parameters>
+            <Parameter Name="0" DataType="Int64" VariableName="User.ETLPackageRunID" />
+            <Parameter Name="1" DataType="Guid" VariableName="System.ExecutionInstanceGUID" />
+            <Parameter Name="2" DataType="Guid" VariableName="System.SourceID" />
+            <Parameter Name="3" DataType="String" VariableName="System.SourceName" />
+            <Parameter Name="4" DataType="String" VariableName="System.SourceDescription" />
+            <Parameter Name="5" DataType="String" VariableName="System.ErrorCode" />
+            <Parameter Name="6" DataType="String" VariableName="System.ErrorDescription" />
+          </Parameters>
+        </ExecuteSQL>
+      </Tasks>
+    </Event>
+  </Events>
+<# } #>

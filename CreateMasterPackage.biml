@@ -1,0 +1,91 @@
+<!--
+***********************************************************************
+File Name:  Create Master Package
+Version:    1.0
+Date:       24 Feb 2015
+By:         Tim G
+
+Description:  Creates a master pavckage that executes the others.
+
+Change History:
+Date            Who             Description
+24 Feb 2015     Tim G           Initial Version
+            
+***********************************************************************
+<#@ template tier="3" #>
+-->
+
+<Biml xmlns="http://schemas.varigence.com/biml.xsd">
+  <Packages>
+    <Package Name="Process EDW Master Package" ConstraintMode="Linear">
+      <Variables>
+        <Variable Name="ETLRunID" DataType="Int64">0</Variable>
+      </Variables>
+      <PackageConfigurations>
+        <PackageConfiguration Name="SSIS Configuration Source">
+          <EnvironmentVariableInput EnvironmentVariable="SSIS.Configuration.ConnectionString" />
+          <ConfigurationValues>
+            <ConfigurationValue DataType="String" PropertyPath="\Package.Connections[SSISConfiguration].Properties[ConnectionString]" Value="TestDesc" Name="Name" />
+          </ConfigurationValues>
+        </PackageConfiguration>
+        <PackageConfiguration Name="EDW" ConnectionName="SSISConfiguration">
+          <ExternalTableInput Table="[dbo].[SSIS Configurations]" />
+        </PackageConfiguration>
+      </PackageConfigurations>
+      <Tasks>
+        <!-- start Audit Log. -->
+        <ExecuteSQL Name="Start Audit Log" ConnectionName="EDW" ResultSet="SingleRow">
+          <DirectInput>
+            INSERT INTO audit.ETLRun (Start, HasErrors, Created)
+            OUTPUT INSERTED.ETLRunID
+            SELECT GETDATE(), 0, GETDATE();
+          </DirectInput>
+          <Results>
+            <Result Name="ETLRunID" VariableName="User.ETLRunID" />
+          </Results>
+        </ExecuteSQL>
+
+        <!-- execute Deploy Package(s) -->
+        <Container Name="Execute Deploy Packages" ConstraintMode="Parallel">
+          <Tasks>
+            <# foreach (var package in RootNode.Packages) { #>
+            <# if (package.GetTag("PackageRole") == "Deploy") { #>
+            <ExecutePackage Name="Run"
+              <#=package.Name#>">
+              <Package PackageName=""<#=package.Name#>" />
+            </ExecutePackage>
+            <# } #>
+            <# } #>
+          </Tasks>
+        </Container>
+
+        <!-- execute Process Packages -->
+        <Container Name="Execute Process Packages" ConstraintMode="Parallel">
+          <Tasks>
+            <# foreach (var package in RootNode.Packages) { #>
+            <# if (package.GetTag("PackageRole") == "Process") { #>
+            <ExecutePackage Name="Run"
+              <#=package.Name#>">
+              <Package PackageName=""<#=package.Name#>" />
+            </ExecutePackage>
+            <# } #>
+            <# } #>
+          </Tasks>
+        </Container>
+
+        <!-- close off Audit Log. -->
+        <ExecuteSQL Name="Close Off Audit Log" ConnectionName="EDW" ResultSet="None">
+          <DirectInput>
+            UPDATE audit.ETLRun SET
+            Finish = GETDATE(),
+            Updated = GETDATE()
+            WHERE ETLRunID = ?
+          </DirectInput>
+          <Parameters>
+            <Parameter Name="0" DataType="Int64" VariableName="User.ETLRunID" />
+          </Parameters>
+        </ExecuteSQL>
+      </Tasks>
+    </Package>
+  </Packages>
+</Biml>

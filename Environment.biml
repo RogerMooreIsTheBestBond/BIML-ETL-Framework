@@ -1,0 +1,36 @@
+<!--
+***********************************************************************
+File Name:  Environment.biml
+Version:    1.0
+Date:       11 Mar 2015
+By:         Tim G
+
+Description:  Declares Connections, Databases and Schemas used in the solution.
+Usage:        Change the Source connection string to ppoint to the required source database.
+              NOTE: if source is a file or whatever, will need to add functionality to this soulution.
+
+Change History:
+Date            Who             Description
+11 Mar 2015     Tim G           Initial Version
+            
+***********************************************************************
+-->
+<Biml xmlns="http://schemas.varigence.com/biml.xsd">
+  <Connections>
+		<!--
+    <OleDbConnection Name="EDS" ConnectionString="Provider=SQLNCLI11;Server=localhost;Initial Catalog=EDS;Integrated Security=SSPI;" />
+    <OleDbConnection Name="EDW" ConnectionString="Provider=SQLNCLI11;Server=localhost;Initial Catalog=EDW;Integrated Security=SSPI;" />
+		-->
+		<OleDbConnection Name="EDS" ConnectionString="Provider=SQLNCLI11;Server=SAWSEDS01\SIT;Initial Catalog=EDS;Integrated Security=SSPI;" />
+		<OleDbConnection Name="EDW" ConnectionString="Provider=SQLNCLI11;Server=SAWDVBI08\SQL2012;Initial Catalog=PropertyAccountsEDW;Integrated Security=SSPI;" />
+	</Connections>
+  <Databases>
+		<Database Name="EDS" ConnectionName="EDS" />
+    <Database Name="EDW" ConnectionName="EDW" />
+  </Databases>
+  <Schemas>
+		<Schema Name="stg" DatabaseName="EDW" />
+		<Schema Name="dbo" DatabaseName="EDW" />
+		<Schema Name="audit" DatabaseName="EDW" />
+  </Schemas>
+</Biml>

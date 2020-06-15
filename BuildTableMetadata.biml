@@ -1,0 +1,303 @@
+<!--
+***********************************************************************
+File Name:  Build Table Metadata
+Version:    1.0
+Date:       29 Jan 2015
+By:         Tim G
+
+Description:  Builds the internal BIML representation of the tables in the destination database, dbo schema.
+            Also builds the stage ("stg") schema, with the same tables and columns as the dbo schema, 
+            except it leaves out tables with RequiresETL == "False".
+
+Change History:
+Date            Who             Description
+29 Jan 2015     Tim G           Initial Version
+            
+***********************************************************************
+
+<#@ import namespace="System.Data" #>
+<#@ import namespace="Varigence.Hadron.CoreLowerer.SchemaManagement" #>
+<#@ import namespace="Varigence.Hadron.Extensions.SchemaManagement" #>
+
+<#+
+AstOleDbConnectionNode conn;
+#>
+
+<#
+var destinationConnection = RootNode.DbConnections["EDW"];
+conn = SchemaManager.CreateConnectionNode("SchemaProvider", RootNode.DbConnections["EDW"].ConnectionString);
+var importResult = destinationConnection.ImportDB("dbo", "", ImportOptions.ExcludeForeignKey | ImportOptions.ExcludeColumnDefault | ImportOptions.ExcludeViews);
+#>
+-->
+  <Biml xmlns="http://schemas.varigence.com/biml.xsd">
+    <Tables>
+			<!-- 1. get tables from the dbo schema in the EDW database. -->
+			<!--    these are the destination tables we populate from the EDS -->
+      <# foreach (var table in importResult.TableNodes) { #>
+        <!-- we don't want sysdiagrams! -->
+        <# if (!table.Name.Equals("sysdiagrams")) { #>
+          <# GetSqlServerTableExtendedProperties(table); #>
+          <!-- Add tables to the dbo schema straight from the database -->
+          <Table Name="<#=table.Name#>" SchemaName="EDW.dbo">
+            <!-- add all metadata as annotations -->
+            <Annotations>
+              <Annotation AnnotationType="Tag" Tag="SourceSchemaQualifiedName">
+                <#=table.SchemaQualifiedName#>
+              </Annotation>
+              <# foreach (var annot in table.Annotations) { #>
+								<#=annot.GetBiml()#>
+              <# } #>
+            </Annotations>
+            <!-- now add all columns -->
+            <Columns>
+              <# foreach (var column in table.Columns) { #>
+                <# GetSqlServerColumnExtendedProperties(column, table); #>
+                <#=column.GetBiml()#>
+              <# } #>
+            </Columns>
+          </Table>
+        <# } #>
+      <# } #>
+			
+			<!-- 2. create metadata for staging tables in the stg schema of the EDW. -->
+			<!--		we create these, populate them with changed records from the EDS, then use them in a MERGE statement -->
+			<!--		to update the destination dimensional tables from step 1. above. -->
+      <# foreach (var table in importResult.TableNodes) { #>
+        <!-- we don't want sysdiagrams! -->
+        <# if (!table.Name.Equals("sysdiagrams")) { #>
+					<!-- only build a staging table if it requires ETL -->
+					<# if (ReturnBooleanTableAnnotationValue(table, "RequiresETL")) { #>
+
+					<!-- add in the table. -->
+					<Table Name="<#=table.Name#>" SchemaName="EDW.stg">
+						<!--add all metadata as annotations -->
+						<Annotations>
+							<Annotation AnnotationType="Tag" Tag="SourceSchemaQualifiedName"><#=table.SchemaQualifiedName#></Annotation>
+							<# foreach (var annot in table.Annotations) { #>
+                <#=annot.GetBiml()#>
+							<# } #>
+						</Annotations>
+
+						<!-- now add columns -->
+						<Columns>
+							<# foreach (var column in table.Columns) { #>
+								<!-- Don't add column if a Surrogate Key or Audit Field -->
+								<# if (!ReturnBooleanColumnAnnotationValue(column, "IsSurrogateKey") && !ReturnBooleanColumnAnnotationValue(column, "IsAuditField")) { #>
+									<# if (ReturnBooleanColumnAnnotationValue(column, "IsForeignKey")) { #>
+										<!-- Handle Foreign Keys by adding both the FK and Natural Key fields -->
+										<# var fkColumn = column.Duplicate() as AstTableColumnBaseNode; #>
+										<!-- make FK nullable as it will be populated after the initial staging load -->
+										<# fkColumn.IsNullable = true; #>
+										<#=fkColumn.EmitAllXml()#>
+										<!-- add in natural key so we can perform foreign key lookups later -->
+										<# var nkColumn = GetNaturalKeyColumn(column, importResult);#>
+										<#=nkColumn.EmitAllXml()#>
+									<# } else { #>
+										<!-- not a FK, SK or audit field, so just add the column -->
+										<#=column.GetBiml()#>
+									<# } #>
+								<# } #>
+							<# } #>
+							<!-- also add in a ChangeType column, to store the 'UPDATED', 'DELETED' or 'INSERTED' info -->
+							<Column Name="ChangeType" DataType="AnsiString" Length="10" IsNullable="true">
+								<Annotations>
+									<Annotation AnnotationType="Tag" Tag="SourceColumn">ChangeType</Annotation>
+								</Annotations>
+							</Column>
+						</Columns>
+					</Table>
+        <# } #>
+      <# } #>
+    <# } #>
+
+    <!-- 3. Add in Audit table metadata by hand. -->
+    <!-- Delta Identifiers stored the last 'changed date' or 'identity' value we got from a source table-->
+      <Table Name="DeltaIndicators" SchemaName="EDW.audit">
+        <Annotations>
+          <Annotation AnnotationType="Tag" Tag="RequiresETL">False</Annotation>
+        </Annotations>
+        <Columns>
+          <Column Name="DeltaIndicatorsID" DataType="Int64"></Column>
+          <Column Name="ETLPackageRunID" DataType="Int64"></Column>
+          <Column Name="PackageName" DataType="AnsiString" Length="100"></Column>
+          <Column Name="TargetTableName" DataType="AnsiString" Length="100"></Column>
+          <Column Name="IndicatorField" DataType="AnsiString" Length="100"></Column>
+          <Column Name="IndicatorValue" DataType="AnsiString" Length="50"></Column>
+          <Column Name="Created" DataType="DateTime2" Length="7"></Column>
+          <Column Name="IsCurrent" DataType="Boolean"></Column>
+        </Columns>
+      </Table>
+      <!-- ETL Error logs erros that occur during an ETL Run -->
+      <Table Name="ETLError" SchemaName="EDW.audit">
+        <Annotations>
+          <Annotation AnnotationType="Tag" Tag="RequiresETL">False</Annotation>
+        </Annotations>
+        <Columns>
+          <Column Name="ETLErrorID" DataType="Int64"></Column>
+          <Column Name="ETLPackageRunID" DataType="Int64"></Column>
+          <Column Name="ExecutionGUID" DataType="Guid"></Column>
+          <Column Name="TaskGUID" DataType="Guid"></Column>
+          <Column Name="TaskName" DataType="AnsiString" Length="100"></Column>
+          <Column Name="TaskDescription" DataType="AnsiString" Length="200"></Column>
+          <Column Name="ErrorType" DataType="AnsiString" Length="20"></Column>
+          <Column Name="ErrorCode" DataType="AnsiString" Length="100"></Column>
+          <Column Name="ErrorDescription" DataType="AnsiString" Length="5000"></Column>
+          <Column Name="Created" DataType="DateTime2" Length="7"></Column>
+        </Columns>
+      </Table>
+      <!-- ETLPackageRun records the stats around running an individual SSIS package -->
+      <Table Name="ETLPackageRun" SchemaName="EDW.audit">
+        <Annotations>
+          <Annotation AnnotationType="Tag" Tag="RequiresETL">False</Annotation>
+        </Annotations>
+        <Columns>
+          <Column Name="ETLPackageRunID" DataType="Int64"></Column>
+          <Column Name="ETLRunID" DataType="Int64"></Column>
+          <Column Name="PackageName" DataType="AnsiString" Length="100"></Column>
+          <Column Name="PackageGUID" DataType="Guid"></Column>
+          <Column Name="PackageVersionGUID" DataType="Guid"></Column>
+          <Column Name="ExecutionGUID" DataType="Guid"></Column>
+          <Column Name="Start" DataType="DateTime2" Length="7"></Column>
+          <Column Name="Finish" DataType="DateTime2" Length="7"></Column>
+          <Column Name="HasErrors" DataType="Boolean"></Column>
+          <Column Name="HasInferredMembers" DataType="Boolean"></Column>
+          <Column Name="Created" DataType="DateTime2" Length="7"></Column>
+          <Column Name="Updated" DataType="DateTime2" Length="7"></Column>
+        </Columns>
+      </Table>
+      <!-- ETLRun records stats of a run of SSIS packages -->
+      <Table Name="ETLRun" SchemaName="EDW.audit">
+        <Annotations>
+          <Annotation AnnotationType="Tag" Tag="RequiresETL">False</Annotation>
+        </Annotations>
+        <Columns>
+          <Column Name="ETLRunID" DataType="Int64"></Column>
+          <Column Name="ETLRunName" DataType="AnsiString" Length="100"></Column>
+          <Column Name="Start" DataType="DateTime2" Length="7"></Column>
+          <Column Name="Finish" DataType="DateTime2" Length="7"></Column>
+          <Column Name="HasErrors" DataType="Boolean"></Column>
+          <Column Name="Created" DataType="DateTime2" Length="7"></Column>
+          <Column Name="Updated" DataType="DateTime2" Length="7"></Column>
+        </Columns>
+      </Table>
+      <!-- ETLTaskRun logs the completion of a Task in a Package -->
+      <Table Name="ETLTaskRun" SchemaName="EDW.audit">
+        <Annotations>
+          <Annotation AnnotationType="Tag" Tag="RequiresETL">False</Annotation>
+        </Annotations>
+        <Columns>
+          <Column Name="ETLTaskRunID" DataType="Int64"></Column>
+          <Column Name="ETLPackageRunID" DataType="Int64"></Column>
+          <Column Name="ExecutionGUID" DataType="Guid"></Column>
+          <Column Name="TaskGUID" DataType="Guid"></Column>
+          <Column Name="TaskName" DataType="AnsiString" Length="100"></Column>
+          <Column Name="TaskDescription" DataType="AnsiString" Length="200"></Column>
+          <Column Name="Created" DataType="DateTime2" Length="7"></Column>
+        </Columns>
+      </Table>
+      <!-- InferredMembers records when an inferred member is created -->
+      <Table Name="InferredMembers" SchemaName="EDW.audit">
+        <Annotations>
+          <Annotation AnnotationType="Tag" Tag="RequiresETL">False</Annotation>
+        </Annotations>
+        <Columns>
+          <Column Name="InferredMembersID" DataType="Int64"></Column>
+          <Column Name="ETLPackageRunID" DataType="Int64"></Column>
+          <Column Name="Dimension" DataType="AnsiString" Length="50"></Column>
+          <Column Name="NaturalKey" DataType="AnsiString" Length="50"></Column>
+          <Column Name="Created" DataType="DateTime2" Length="7"></Column>
+        </Columns>
+      </Table>
+
+		</Tables>
+  </Biml>
+
+<!--
+<#+
+  AstNode GetSqlServerTableExtendedProperties(AstTableNode table)
+  {
+    AstNode returnValue = (AstNode)table;
+
+    var query = string.Format("SELECT name, value FROM fn_listextendedproperty(NULL, 'schema', '{0}', 'table', '{1}', NULL, NULL)", table.SchemaName, table.Name);
+
+    var extendedProperties = ExternalDataAccess.GetDataTable(conn.ConnectionString, query);
+
+    foreach (DataRow ep in extendedProperties.Rows)
+    {
+      returnValue.AddAnnotation(AnnotationType.Tag, ep["value"].ToString(), ep["name"].ToString());
+    }
+
+    return returnValue;
+  }
+    
+  AstNode GetSqlServerColumnExtendedProperties(AstTableColumnBaseNode column, AstTableNode table)
+  {
+    AstNode returnValue = (AstNode)column;
+
+    var query = string.Format("SELECT name, value FROM fn_listextendedproperty(NULL, 'schema', '{0}', 'table', '{1}', 'column', '{2}')", table.SchemaName, table.Name, column.Name);
+
+    var extendedProperties = ExternalDataAccess.GetDataTable(conn.ConnectionString, query);
+
+    foreach (DataRow ep in extendedProperties.Rows)
+    {
+      returnValue.AddAnnotation(AnnotationType.Tag, ep["value"].ToString(), ep["name"].ToString());
+    }
+
+    return returnValue;
+  }
+	
+	bool ReturnBooleanTableAnnotationValue(AstTableNode table, string annotName)
+	{
+		var annot = table.Annotations.FirstOrDefault(a => a.Tag.Equals(annotName));
+		if (annot != null)
+		{
+			return annot.Text.Equals("True");
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	bool ReturnBooleanColumnAnnotationValue(AstTableColumnBaseNode column, string annotName)
+	{
+		var annot = column.Annotations.FirstOrDefault(a => a.Tag.Equals(annotName));
+		if (annot != null)
+		{
+			return annot.Text.Equals("True");
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+  AstTableColumnBaseNode GetNaturalKeyColumn(AstTableColumnBaseNode column, ImportResults importResult)
+  {
+    // return the natural key column as referred to in the passed colum's metadata.
+    
+    // get annotations defining the table and natural key column
+    var annotForeignKeyTable = column.Annotations.FirstOrDefault(a => a.Tag.Equals("ForeignKeyTable"));
+    var annotForeignKeyLookupColumn = column.Annotations.FirstOrDefault(a => a.Tag.Equals("ForeignKeyLookupColumn"));
+		var annotSourceColumn = column.Annotations.FirstOrDefault(a => a.Tag.Equals("SourceColumn"));
+    
+    // get foreign key table object
+    var table = importResult.TableNodes.FirstOrDefault(a => a.Name.Equals(annotForeignKeyTable.Text));
+    
+    // get the natural key column
+    var fkColumn = table.Columns.FirstOrDefault(a => a.Name.Equals(annotForeignKeyLookupColumn.Text));
+		var retColumn = fkColumn.Duplicate() as AstTableColumnBaseNode;
+		// remove the SourceColumn annotation, so we can re-add it with correct Source Column...
+		var annot = retColumn.Annotations.FirstOrDefault(a => a.Tag.Equals("SourceColumn"));
+		annot.RemoveFromParent();
+		var annot1 = retColumn.Annotations.FirstOrDefault(a => a.Tag.Equals("IsForeignKey"));
+		annot1.RemoveFromParent();
+    
+    // add a SourceColumn and IsForeignKey annotation
+    retColumn.AddAnnotation(AnnotationType.Tag, annotSourceColumn.Text, "SourceColumn");
+    retColumn.AddAnnotation(AnnotationType.Tag, "False", "IsForeignKey");
+    
+    return retColumn;
+  }
+#>
+-->
