@@ -18,8 +18,8 @@ Date            Who             Description
 <Biml xmlns="http://schemas.varigence.com/biml.xsd">
   <Connections>
 		<!--
-    <OleDbConnection Name="EDS" ConnectionString="Provider=SQLNCLI11;Server=localhost;Initial Catalog=EDS;Integrated Security=SSPI;" />
-    <OleDbConnection Name="EDW" ConnectionString="Provider=SQLNCLI11;Server=localhost;Initial Catalog=EDW;Integrated Security=SSPI;" />
+    <OleDbConnection Name="EDS" ConnectionString="Provider=SQLNCLI11;Server=localhost\SQL2016;Initial Catalog=EDS;Integrated Security=SSPI;" />
+    <OleDbConnection Name="EDW" ConnectionString="Provider=SQLNCLI11;Server=localhost\bSQL2016;Initial Catalog=EDW;Integrated Security=SSPI;" />
 		-->
 		<OleDbConnection Name="EDS" ConnectionString="Provider=SQLNCLI11;Server=SAWSEDS01\SIT;Initial Catalog=EDS;Integrated Security=SSPI;" />
 		<OleDbConnection Name="EDW" ConnectionString="Provider=SQLNCLI11;Server=SAWDVBI08\SQL2012;Initial Catalog=PropertyAccountsEDW;Integrated Security=SSPI;" />

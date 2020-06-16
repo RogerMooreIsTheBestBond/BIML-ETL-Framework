@@ -26,7 +26,7 @@
           <SSIS:Property SSIS:Name="CreatorComputerName">LAPPYTHING</SSIS:Property>
           <SSIS:Property SSIS:Name="Description">
           </SSIS:Property>
-          <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAApiQySYTUGE6TE/WA0+e0fwAAAAACAAAAAAAQZgAAAAEAACAAAAA5wxI6ACBKhGy8XmDHNoA6O9N7amQOuXgdSmoeXouo/gAAAAAOgAAAAAIAACAAAACZkToYdj0wQiYkHAKD1O+UJJZLF/gTgVA1liz8lW/2FZAAAAAxpDpBNep52KpqGKs5Xc8wbtJhOl11FqjN5BeuMIvE9lu2oEkpQtD5ZhrAhsgWe/U1AlfTouIbQSfGfv2V+tkXrB+1hTrbBjGVBlwXIqTSkKhLYqaiu92gtCsM2JeUvsGAygJ4QeNWIbWvXAlzkkNMV7yUCNCbtwGQRvDenudV/9C8ezGYj5dbFMgojH/9iKVAAAAAaYtTqEg3DE/VM+hB9DTKm1oMO/nXv6e2wYbaJsUdyLQb2/HKcFhztEuICozX4uH1BhdE8EO9gWOrRHJBkckocA==</SSIS:Property>
+          <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAApiQySYTUGE6TE/WA0+e0fwAAAAACAAAAAAAQZgAAAAEAACAAAAAFJLua24QojzBvhiq+vO2NY88S+BjFnh2MxfDt8lj+agAAAAAOgAAAAAIAACAAAACEaYAB9SlcdRoisKPrL704vx6lfN799iznPPgnwALWV5AAAABa0dYAtp+AGQsh2aCm1gGr561VxOKypKL91mQuaGvuC/0PGoVFPR9PJboyxosnH9VrrmtiE3c4Fspx27ZEdrtJBMEdw6vXOGI2qimZ0fYE81jFeg5HrAWAbw5MaA9Vt/X+RvzfMHGcaZGgiEDURhlkQCeoanupO23RreCBgLA82qPaZejuEpu6MwbA6jICjORAAAAABO/NTEGmPvr1cLa/ilIJh09Oti3EmY/xYoX5pN20/TS5OOgF/jeMx1hHETU8keQ5WYtulBm7l4FypwQvPycvEw==</SSIS:Property>
           <SSIS:Property SSIS:Name="FormatVersion">1</SSIS:Property>
         </SSIS:Properties>
         <SSIS:Packages />
@@ -51,6 +51,10 @@
     <ProjectItem>
       <Name>CreateEDWPackages.biml</Name>
       <FullPath>CreateEDWPackages.biml</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>CreateEDWPackages.cs</Name>
+      <FullPath>CreateEDWPackages.cs</FullPath>
     </ProjectItem>
     <ProjectItem>
       <Name>CreateMasterPackage.biml</Name>
@@ -81,7 +85,13 @@
         <LinkedAzureSSISIR />
         <LinkedAzureStorage />
         <RemoteExecutionFolder />
-        <ParameterConfigurationValues />
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2020-06-16T00:43:33.5902823Z</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
       </Options>
     </Configuration>
   </Configurations>

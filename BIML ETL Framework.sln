@@ -5,13 +5,30 @@ VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{159641D6-6404-4A2A-AE62-294DE0FE8301}") = "BIML ETL Framework", "BIML ETL Framework.dtproj", "{5A329843-CC8F-48F3-945B-FCC9B5DABA57}"
 EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "EDW", "EDW\EDW.sqlproj", "{EB872FB6-4886-4362-B148-120EF28B6864}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Development|Default = Development|Default
+		Debug|Any CPU = Debug|Any CPU
+		Development|Any CPU = Development|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Development|Default.ActiveCfg = Development
-		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Development|Default.Build.0 = Development
+		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Debug|Any CPU.ActiveCfg = Development
+		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Debug|Any CPU.Build.0 = Development
+		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Development|Any CPU.ActiveCfg = Development
+		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Development|Any CPU.Build.0 = Development
+		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Release|Any CPU.ActiveCfg = Development
+		{5A329843-CC8F-48F3-945B-FCC9B5DABA57}.Release|Any CPU.Build.0 = Development
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Development|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Development|Any CPU.Build.0 = Debug|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Development|Any CPU.Deploy.0 = Debug|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB872FB6-4886-4362-B148-120EF28B6864}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

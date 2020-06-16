@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0">
+  <Operation Name="Rename Refactor" Key="5c94c3c1-57e6-4416-86d3-fbd93c9e8e77" ChangeDateTime="06/16/2020 07:35:52" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[audit].[ETLError].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[audit].[ETLError]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ETLErrorID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3c7e463d-eaaa-4b94-a05f-7c6058371826" ChangeDateTime="06/16/2020 07:40:24" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[dbo].[ETLPackageRun].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[ETLPackageRun]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ETLPackageRunID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="574be5d1-843b-4533-afa0-68a89a40c1ce" ChangeDateTime="06/16/2020 07:43:40" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[dbo].[ETLRun].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[ETLRun]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ETLRunID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="384072bf-7c9a-417b-a1f8-ce4915a69ad2" ChangeDateTime="06/16/2020 07:47:41" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[dbo].[ETLTaskRun].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[ETLTaskRun]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ETLTaskRunID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="fc7d8af1-d47a-410d-aed8-71cfde77be6d" ChangeDateTime="06/16/2020 07:53:22" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+    <Property Name="ElementName" Value="[audit].[InferredMembers].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[audit].[InferredMembers]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="InferredMembersID" />
+  </Operation>
+</Operations>

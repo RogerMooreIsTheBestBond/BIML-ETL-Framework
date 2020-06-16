@@ -1,0 +1,10 @@
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\bin\Debug\EDW.dacpac
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\bin\Debug\EDW.dll
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\bin\Debug\EDW.pdb
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\obj\Debug\EDW.sqlprojAssemblyReference.cache
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\obj\Debug\Model.xml
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\obj\Debug\refactor.xml
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\obj\Debug\postdeploy.sql
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\obj\Debug\predeploy.sql
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\obj\Debug\EDW.dll
+C:\Users\blah\source\repos\BIML-ETL-Framework\EDW\obj\Debug\EDW.pdb
